@@ -25,7 +25,7 @@ const CENTS_IN_A_DOLAR = 100;
 const INVOICES_PAGE = "/dashboard/invoices";
 
 export type State = {
-    errors: {
+    errors?: {
         customerId?: string[];
         amount?: string[];
         status?: string[];
