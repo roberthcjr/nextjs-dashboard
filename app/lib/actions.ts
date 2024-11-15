@@ -4,6 +4,8 @@ import { z } from "zod";
 import { sql } from "@vercel/postgres";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
 
 const FormSchema = z.object({
     id: z.string(),
@@ -24,6 +26,15 @@ const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const CENTS_IN_A_DOLAR = 100;
 const INVOICES_PAGE = "/dashboard/invoices";
 
+type ErrorOptions = {
+    [key: string]: string;
+};
+
+const Errors: ErrorOptions = {
+    CredentialsSignin: "Invalid Credentials",
+    AccessDenied: "Acess Denied",
+};
+
 export type State = {
     errors?: {
         customerId?: string[];
@@ -32,6 +43,22 @@ export type State = {
     };
     message?: string | null;
 };
+
+export async function authenticate(
+    prevState: string | undefined,
+    formData: FormData
+) {
+    try {
+        await signIn("credentials", formData);
+    } catch (error) {
+        if (error instanceof AuthError) {
+            console.log(error.type);
+            if (!Errors[error.type]) return "Something went wrong.";
+            return Errors[error.type];
+        }
+        throw error;
+    }
+}
 
 export async function createInvoice(prevState: State, formData: FormData) {
     const validatedFields = CreateInvoice.safeParse({
