@@ -65,16 +65,29 @@ export async function createInvoice(prevState: State, formData: FormData) {
     redirect(INVOICES_PAGE);
 }
 
-export async function updateInvoice(id: string, formData: FormData) {
+export async function updateInvoice(
+    id: string,
+    prevState: State,
+    formData: FormData
+) {
+    console.log(id);
+    console.log(formData);
+    const validatedFields = CreateInvoice.safeParse({
+        customerId: formData.get("customerId"),
+        amount: formData.get("amount"),
+        status: formData.get("status"),
+    });
+
+    if (!validatedFields.success)
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: "Missing Fields. Failed to Update Invoice",
+        };
+
+    const { amount, customerId, status } = validatedFields.data;
+
+    const amountInCents = amount * CENTS_IN_A_DOLAR;
     try {
-        const { amount, customerId, status } = CreateInvoice.parse({
-            customerId: formData.get("customerId"),
-            amount: formData.get("amount"),
-            status: formData.get("status"),
-        });
-
-        const amountInCents = amount * CENTS_IN_A_DOLAR;
-
         await sql`
             UPDATE invoices SET
             customer_id = ${customerId},
@@ -83,7 +96,9 @@ export async function updateInvoice(id: string, formData: FormData) {
             WHERE id = ${id}
         `;
     } catch (error) {
-        return { message: "Database Error: Failed to Update Invoice." };
+        return {
+            message: `Database Error: Failed to Update Invoice. Cause: ${error}`,
+        };
     }
     revalidatePath(INVOICES_PAGE);
     redirect(INVOICES_PAGE);
@@ -95,6 +110,8 @@ export async function deleteInvoice(id: string) {
         revalidatePath(INVOICES_PAGE);
         return { message: "Invoice deleted" };
     } catch (error) {
-        return { message: "Database Error: Failed to Delete Invoice." };
+        return {
+            message: `Database Error: Failed to Delete Invoice. Cause: ${error}`,
+        };
     }
 }
