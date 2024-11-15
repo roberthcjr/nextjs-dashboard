@@ -52,7 +52,6 @@ export async function authenticate(
         await signIn("credentials", formData);
     } catch (error) {
         if (error instanceof AuthError) {
-            console.log(error.type);
             if (!Errors[error.type]) return "Something went wrong.";
             return Errors[error.type];
         }
