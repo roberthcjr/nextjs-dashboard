@@ -2,11 +2,16 @@ import Form from "@/app/ui/invoices/edit-form";
 import Breadcrumbs from "@/app/ui/invoices/breadcrumbs";
 import { fetchInvoiceById, fetchCustomers } from "@/app/lib/data";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 
 type EditProps = {
     params: Promise<{
         id: string;
     }>;
+};
+
+export const metadata: Metadata = {
+    title: "Edit | Invoices",
 };
 
 export default async function Page(props: EditProps) {
